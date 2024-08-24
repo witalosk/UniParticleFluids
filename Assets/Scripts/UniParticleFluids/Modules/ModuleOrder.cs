@@ -29,6 +29,12 @@ namespace UniParticleFluids.Modules
         {
             public const int ParticleToGrid = 2000;
             
+            public const int GridToParticle = 2080;
+        }
+
+        public static class FieldUpdate
+        {
+            public const int ApplyVelocityToField = 2050;
         }
     }
 }

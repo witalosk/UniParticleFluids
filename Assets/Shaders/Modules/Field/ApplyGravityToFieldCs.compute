@@ -1,0 +1,13 @@
+#pragma kernel ApplyGravityToField
+
+RWTexture3D<float3> _FieldVelocityBuffer;
+
+float3 _Gravity;
+
+[numthreads(8, 8, 8)]
+void ApplyGravityToField(uint3 threadId : SV_DispatchThreadID)
+{
+    float3 velocity = _FieldVelocityBuffer[threadId];
+    velocity += _Gravity;
+    _FieldVelocityBuffer[threadId] = velocity;
+}

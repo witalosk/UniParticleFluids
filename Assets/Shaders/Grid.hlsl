@@ -30,6 +30,11 @@ inline uint WorldPosToCellID(float3 position, float3 grid_min, int3 grid_size, f
     return CellIndexToCellID(WorldPosToCellIndex(position, grid_min, grid_inv_spacing), grid_size);
 }
 
+inline float3 WorldPosToUv(float3 position, float3 grid_min, float grid_inv_spacing, int3 grid_size)
+{
+    return WorldPosToGridPos(position, grid_min, grid_inv_spacing) / grid_size;
+}
+
 inline float3 CellIndexToWorldPos(int3 index, float3 grid_min, float grid_spacing)
 {
     return grid_min + (index + 0.5f) * grid_spacing;

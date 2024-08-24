@@ -135,6 +135,8 @@ GameObject:
   - component: {fileID: 23982671}
   - component: {fileID: 23982672}
   - component: {fileID: 23982673}
+  - component: {fileID: 23982675}
+  - component: {fileID: 23982674}
   - component: {fileID: 23982670}
   - component: {fileID: 23982669}
   - component: {fileID: 23982668}
@@ -186,7 +188,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e88c313a894c439cb3a46c7793900c7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _isActive: 1
+  _isActive: 0
   _integrateCs: {fileID: 7200000, guid: 99e16a5f6ee046b18bde8c352085a894, type: 3}
 --- !u!114 &23982670
 MonoBehaviour:
@@ -200,7 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ca9cf1c1d69483c8f474942cf47e604, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _isActive: 1
+  _isActive: 0
   _applyNoiseCs: {fileID: 7200000, guid: 936a7948501d212488c07ed903871b58, type: 3}
   _noiseFrequency: 0.1
   _noiseScale: 0.04
@@ -248,6 +250,34 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _isActive: 1
   _particleToGridCs: {fileID: 7200000, guid: 9ad95a64fcc84532afc97e3010dcd4de, type: 3}
+--- !u!114 &23982674
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23982666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b51a3cdb3f4647f89d5972fb176b59c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _isActive: 1
+  _particleToGridCs: {fileID: 7200000, guid: 0591e886faa84dcf8582f548e5d41112, type: 3}
+--- !u!114 &23982675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 23982666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0844d29c02a401a988609b01eea21c9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _isActive: 1
+  _applyGravityToFieldCs: {fileID: 7200000, guid: e81bbc50223f4130bea4a18474b662ec, type: 3}
 --- !u!1 &435655956
 GameObject:
   m_ObjectHideFlags: 0
@@ -606,6 +636,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _gridSpacing: 0.5
+  _flipness: 0.99
 --- !u!1 &1339466797
 GameObject:
   m_ObjectHideFlags: 0
