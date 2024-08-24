@@ -9,9 +9,9 @@ Texture3D<float3> _FieldVelocityBufferWrite;    // Original velocity
 SamplerState sampler_FieldVelocityBuffer;
 SamplerState sampler_FieldVelocityBufferWrite;
 
-float3 _GridMin;
-int3 _GridSize;
-float _GridInvSpacing;
+DEFINE_SPACE(_Space);
+DEFINE_GRID(_FieldVelocityBuffer);
+
 float _Flipness;
 
 [numthreads(128, 1, 1)]
@@ -23,8 +23,7 @@ void GridToParticle(uint3 thread_id : SV_DispatchThreadID)
 
     Particle p = _ParticleBuffer[p_id];
 
-    float3 uv = WorldPosToUv(p.position, _GridMin, _GridInvSpacing, _GridSize);
-
+    float3 uv = WorldPosToUv(p.position, _SpaceMin, _FieldVelocityBufferGridInvSpacing, _FieldVelocityBufferGridSize);
     const float3 g_origin_vel = _FieldVelocityBufferWrite.SampleLevel(sampler_FieldVelocityBufferWrite, uv, 0).xyz;
     const float3 g_vel = _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uv, 0).xyz;
 

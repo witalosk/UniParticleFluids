@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UniParticleFluids.Configs
 {
-    public interface ISpaceConfig
+    public interface ISpaceConfig : IShaderSettableData
     {
         Vector3 Position { get; }
         Vector3 Scale { get; }

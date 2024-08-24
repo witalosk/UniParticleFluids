@@ -1,10 +1,12 @@
 #ifndef HLSL_INCLUDE_COMMON
 #define HLSL_INCLUDE_COMMON
 
+#include "Macros.hlsl"
 #include "Particle.hlsl"
 
 uint3 _DesiredThreadNum;
 #define RETURN_IF_INVALID(TID) if (any(TID >= _DesiredThreadNum)) return;
+
 
 static const float POSITION_EPSILON = 1e-4;
 

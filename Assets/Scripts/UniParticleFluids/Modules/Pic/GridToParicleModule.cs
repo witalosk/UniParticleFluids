@@ -13,7 +13,6 @@ namespace UniParticleFluids.Modules.Pic
         private ParticleBuffer _particleBuffer;
         private FieldVelocityBuffer _fieldVelocityBuffer;
         private ISimulationSpaceConfig _simulationSpaceConfig;
-        private IGridSpacingConfig _gridSpacingConfig;
         private PicConfig _picConfig;
 
         public override void Initialize(IObjectResolver resolver)
@@ -21,20 +20,16 @@ namespace UniParticleFluids.Modules.Pic
             _particleBuffer = resolver.Resolve<ParticleBuffer>();
             _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
             _simulationSpaceConfig = resolver.Resolve<ISimulationSpaceConfig>();
-            _gridSpacingConfig = resolver.Resolve<IGridSpacingConfig>();
             _picConfig = resolver.Resolve<PicConfig>();
         }
 
         public override void Run()
         {
-            _particleToGridCs.SetVector("_GridMin", _simulationSpaceConfig.Min);
-            _particleToGridCs.SetVector("_GridMax", _simulationSpaceConfig.Max);
-            _particleToGridCs.SetInts("_GridSize", _fieldVelocityBuffer.Size.ToInts());
-            _particleToGridCs.SetFloat("_GridSpacing", _gridSpacingConfig.GridSpacing);
-            _particleToGridCs.SetFloat("_GridInvSpacing", 1f / _gridSpacingConfig.GridSpacing);
+            int kernel = _particleToGridCs.FindKernel("GridToParticle");
+            
             _particleToGridCs.SetFloat("_Flipness", _picConfig.Flipness);
 
-            int kernel = _particleToGridCs.FindKernel("GridToParticle");
+            _particleToGridCs.SetData(kernel, "_Space", _simulationSpaceConfig);
             _particleToGridCs.SetData(kernel, "_ParticleBuffer", _particleBuffer);
             _particleToGridCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
 

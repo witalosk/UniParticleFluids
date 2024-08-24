@@ -6,7 +6,7 @@ namespace UniParticleFluids.Modules.Field
 {
     public class ApplyGravityToFieldModule : ModuleBase
     {
-        public override int DefaultModuleOrder => ModuleOrder.PicUpdate.ApplyVelocityToField;
+        public override int DefaultModuleOrder => ModuleOrder.FieldUpdate.ApplyVelocityToField;
         
         [SerializeField] private ComputeShader _applyGravityToFieldCs;
         [SerializeField] private Vector3 _gravity = new(0, -9.81f, 0);

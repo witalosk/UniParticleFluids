@@ -37,12 +37,12 @@ namespace UniParticleFluids
             return new[] {v.x, v.y};
         }
         
-        public static void SetData(this ComputeShader cs, int kernel, string name, DataBase data)
+        public static void SetData(this ComputeShader cs, int kernel, string name, IShaderSettableData data)
         {
             data.SetToComputeShader(cs, kernel, name);
         }
         
-        public static void SetData(this Material material, string name, DataBase data)
+        public static void SetData(this Material material, string name, IShaderSettableData data)
         {
             data.SetToMaterial(material, name);
         }

@@ -1,16 +1,15 @@
 using UniParticleFluids.Configs;
+using UniParticleFluids.Utilities.CustomAttributes;
 using UnityEngine;
 
 namespace UniParticleFluids.Data
 {
-    public class ParticleGridStartEndBuffer : DataBase
+    public class ParticleGridStartEndBuffer : GridDataBase
     {
-        public override Vector3Int Size => new(_size, 1, 1);
         public Vector3Int GridSize => _gridSize;
         public override object Data => _startEndBuffer;
         
-        [SerializeField] private Vector3Int _gridSize;
-        [SerializeField] private int _size;
+        [SerializeField] [Disable] private Vector3Int _gridSize;
         
         private GraphicsBuffer _startEndBuffer;
         
@@ -25,8 +24,9 @@ namespace UniParticleFluids.Data
                 Mathf.CeilToInt(simSpaceConfig.Scale.z / gridSpacingConfig.GridSpacing)
             );
             
-            _size = _gridSize.x * _gridSize.y * _gridSize.z;
-            _startEndBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _size, 2 * sizeof(uint));
+            _gridSpacing = gridSpacingConfig.GridSpacing;
+            _size = new Vector3Int(_gridSize.x * _gridSize.y * _gridSize.z, 1, 1);
+            _startEndBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, _size.x, 2 * sizeof(uint));
         }
 
         public override void Deinitialize()
@@ -37,6 +37,9 @@ namespace UniParticleFluids.Data
 
         public override void SetToComputeShader(ComputeShader computeShader, int kernel, string shaderName)
         {
+            computeShader.SetInts(shaderName + "GridSize", _gridSize.x, _gridSize.y, _gridSize.z);
+            computeShader.SetFloat(shaderName + "GridSpacing", _gridSpacing);
+            computeShader.SetFloat(shaderName + "GridInvSpacing", 1.0f / _gridSpacing);
             computeShader.SetBuffer(kernel, shaderName, _startEndBuffer);
         }
 

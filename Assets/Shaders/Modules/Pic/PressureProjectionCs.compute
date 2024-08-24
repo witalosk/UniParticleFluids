@@ -1,0 +1,13 @@
+#pragma kernel CalcDivergence
+
+#include "../../Common.hlsl"
+#include "../../Grid.hlsl"
+
+Texture3D<float3> _FieldVelocityBuffer;
+RWTexture3D<float3> _FieldVelocityBufferWrite;
+
+[numthreads(8, 8, 8)]
+void CalcDivergence(uint3 thread_id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(thread_id);
+}

@@ -28,7 +28,7 @@ namespace UniParticleFluids.Modules
         public static class PicUpdate
         {
             public const int ParticleToGrid = 2000;
-            public const int ApplyVelocityToField = 2050;
+            public const int PressureProjection = 2070;
             public const int GridToParticle = 2080;
             public const int Advect = 2090;
         }

@@ -3,14 +3,13 @@ using UnityEngine;
 
 namespace UniParticleFluids.Data
 {
-    public class FieldVelocityBuffer : DoubleDataBase
+    public class FieldVelocityBuffer : DoubleGridDataBase
     {
         public override Vector3Int Size => _size;
         public override object Data => _buffer.Read;
         public override object Read => _buffer.Read;
         public override object Write => _buffer.Write;
         
-        [SerializeField] private Vector3Int _size;
         [SerializeField] private RenderTexture _fieldVelocity;
         
         private SwapTexture _buffer;
@@ -27,6 +26,7 @@ namespace UniParticleFluids.Data
                 Mathf.CeilToInt(simSpaceConfig.Scale.z / gridSpacingConfig.GridSpacing)
             );
             
+            _gridSpacing = gridSpacingConfig.GridSpacing;
             _buffer = new SwapTexture(_size, RenderTextureFormat.ARGBFloat, FilterMode.Bilinear, TextureWrapMode.Clamp);
             _fieldVelocity = _buffer.Read;
         }
@@ -39,12 +39,16 @@ namespace UniParticleFluids.Data
         
         public override void SetToComputeShader(ComputeShader computeShader, int kernel, string shaderName)
         {
+            base.SetToComputeShader(computeShader, kernel, shaderName);
+            
             computeShader.SetTexture(kernel, shaderName, _buffer.Read);
             computeShader.SetTexture(kernel, $"{shaderName}Write", _buffer.Write);
         }
 
         public override void SetToMaterial(Material material, string shaderName)
         {
+            base.SetToMaterial(material, shaderName);
+            
             material.SetTexture(shaderName, _buffer.Read);
         }
     }
