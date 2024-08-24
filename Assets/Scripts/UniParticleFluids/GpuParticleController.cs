@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UniParticleFluids.Configs;
 using UniParticleFluids.Data;
 using UniParticleFluids.Modules;
 using UnityEngine;
@@ -7,6 +8,7 @@ namespace UniParticleFluids
 {
     public class GpuParticleController : MonoBehaviour, IObjectResolver
     {
+        [SerializeField] private List<ConfigBase> _configList = new();
         [SerializeField] private List<DataBase> _dataList = new();
         [SerializeField] private List<ModuleBase> _moduleList = new();
         
@@ -16,6 +18,11 @@ namespace UniParticleFluids
             _moduleList.AddRange(GetComponentsInChildren<ModuleBase>());
             
             // Initialize
+            foreach (var config in _configList)
+            {
+                config.Initialize(this);
+            }
+            
             foreach (var data in _dataList)
             {
                 data.Initialize(this);
