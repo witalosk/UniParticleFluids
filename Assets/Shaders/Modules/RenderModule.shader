@@ -2,7 +2,7 @@ Shader "Hidden/RenderModule"
 {
     HLSLINCLUDE
     #include "UnityCG.cginc"
-    #include "Common.hlsl"
+    #include "../Common.hlsl"
 
     struct v2g
     {

@@ -1,14 +1,11 @@
 #ifndef HLSL_INCLUDE_COMMON
 #define HLSL_INCLUDE_COMMON
 
-struct Particle
-{
-    int uuid;
-    float size;
-    float3 position;
-    float3 velocity;
-    float4 color;
-};
+#include "Particle.hlsl"
+
+uint3 _DesiredThreadNum;
+#define RETURN_IF_INVALID(TID) // sjk
+// #define RETURN_IF_INVALID(TID) if (any(TID >= _DesiredThreadNum)) return;
 
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex
@@ -156,5 +153,23 @@ float SimplexNoise(float3 v)
 //     ) / d.x * 0.5;
 //     return rot;
 // }
+
+float3 ConvertRgbToHsv(float3 c)
+{
+    float4 K = float4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+    float4 p = lerp(float4(c.bg, K.wz), float4(c.gb, K.xy), step(c.b, c.g));
+    float4 q = lerp(float4(p.xyw, c.r), float4(c.r, p.yzx), step(p.x, c.r));
+
+    const float d = q.x - min(q.w, q.y);
+    const float e = 1.0e-5;
+    return float3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+
+float3 ConvertHsvToRgb(float3 c)
+{
+    const float4 K = float4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+    const float3 p = abs(frac(c.xxx + K.xyz) * 6.0 - K.www);
+    return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
 
 #endif

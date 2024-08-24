@@ -14,6 +14,7 @@ namespace UniParticleFluids
         
         private void Start()
         {
+            _configList.AddRange(GetComponentsInChildren<ConfigBase>());
             _dataList.AddRange(GetComponentsInChildren<DataBase>());
             _moduleList.AddRange(GetComponentsInChildren<ModuleBase>());
             
@@ -58,6 +59,10 @@ namespace UniParticleFluids
 
         public T Resolve<T>()
         {
+            foreach (var config in _configList)
+            {
+                if (config is T t) return t;
+            }
             foreach (var data in _dataList)
             {
                 if (data is T t) return t;

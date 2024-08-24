@@ -1,6 +1,6 @@
 #pragma kernel Integrate
 
-#include "Common.hlsl"
+#include "../Common.hlsl"
 
 StructuredBuffer<Particle> _ParticleBuffer;
 RWStructuredBuffer<Particle> _ParticleBufferWrite;

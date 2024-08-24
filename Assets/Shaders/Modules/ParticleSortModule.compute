@@ -1,0 +1,79 @@
+﻿#pragma kernel MakeObjectCellIDPair
+#pragma kernel ClearGridObjectID
+#pragma kernel SetGridObjectID
+#pragma kernel RearrangeObject
+
+#include "Assets/Shaders/Common.hlsl"
+#include "Assets/Shaders/Grid.hlsl"
+
+StructuredBuffer<Particle> _ParticleBuffer;
+RWStructuredBuffer<Particle> _ParticleBufferWrite;
+
+#define Object Particle
+#define Pos position
+
+StructuredBuffer<Object> _ObjectBuffer;
+RWStructuredBuffer<Object> _ObjectBufferWrite;
+
+StructuredBuffer<uint2> _ObjectCellIDPairBufferRead;
+RWStructuredBuffer<uint2> _ObjectCellIDPairBufferWrite;
+
+RWStructuredBuffer<uint2> _GridObjectIDBufferWrite;
+
+uint _NumObjects;
+float3 _GridMin;
+float3 _GridMax;
+float3 _GridSize;
+float _GridSpacing;
+float _GridInvSpacing;
+
+[numthreads(128, 1, 1)]
+void MakeObjectCellIDPair(uint3 thread_id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(thread_id);
+
+    const uint o_id = thread_id.x;
+    const uint c_id = WorldPosToCellID(_ObjectBuffer[o_id].Pos, _GridMin, _GridSize, _GridInvSpacing);
+
+    _ObjectCellIDPairBufferWrite[o_id] = uint2(c_id, o_id);
+}
+
+[numthreads(128, 1, 1)]
+void ClearGridObjectID(uint3 thread_id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(thread_id);
+
+    const uint c_id = thread_id.x;
+
+    _GridObjectIDBufferWrite[c_id] = (uint2)0;
+}
+
+[numthreads(128, 1, 1)]
+void SetGridObjectID(uint3 thread_id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(thread_id);
+
+    const uint curr_o_id = thread_id.x;
+
+    const uint prev_o_id = curr_o_id == 0 ? _NumObjects - 1 : curr_o_id - 1;
+    const uint next_o_id = curr_o_id == _NumObjects - 1 ? 0 : curr_o_id + 1;
+    const uint curr_c_id = _ObjectCellIDPairBufferRead[curr_o_id].x;
+    const uint prev_c_id = _ObjectCellIDPairBufferRead[prev_o_id].x;
+    const uint next_c_id = _ObjectCellIDPairBufferRead[next_o_id].x;
+
+    if (curr_c_id != prev_c_id) _GridObjectIDBufferWrite[curr_c_id].x = curr_o_id;
+    if (curr_c_id != next_c_id) _GridObjectIDBufferWrite[curr_c_id].y = curr_o_id + 1;
+}
+
+[numthreads(128, 1, 1)]
+void RearrangeObject(uint3 thread_id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(thread_id);
+
+    const uint o_id = thread_id.x;
+
+    const uint past_o_id = _ObjectCellIDPairBufferRead[o_id].y;
+
+    _ObjectBufferWrite[o_id] = _ObjectBuffer[past_o_id];
+}
+
