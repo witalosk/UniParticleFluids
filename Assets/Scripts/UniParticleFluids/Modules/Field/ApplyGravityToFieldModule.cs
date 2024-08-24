@@ -12,19 +12,19 @@ namespace UniParticleFluids.Modules.Field
         [SerializeField] private Vector3 _gravity = new(0, -9.81f, 0);
         
         private FieldVelocityBuffer _fieldVelocityBuffer;
-        private ISimulationStepConfig _simulationStepConfig;
+        private ITimeStepConfig _timeStepConfig;
 
         public override void Initialize(IObjectResolver resolver)
         {
             _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
-            _simulationStepConfig = resolver.Resolve<ISimulationStepConfig>();
+            _timeStepConfig = resolver.Resolve<ITimeStepConfig>();
         }
 
         public override void Run()
         {
             int kernel = _applyGravityToFieldCs.FindKernel("ApplyGravityToField");
             _applyGravityToFieldCs.SetVector("_Gravity", _gravity);
-            _applyGravityToFieldCs.SetFloat("_TimeStep", _simulationStepConfig.SimulationStep);
+            _applyGravityToFieldCs.SetFloat("_TimeStep", _timeStepConfig.TimeStep);
             _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBufferRead", _fieldVelocityBuffer);
             _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
             _applyGravityToFieldCs.DispatchDesired(kernel, _fieldVelocityBuffer.Size);

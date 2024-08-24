@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UniParticleFluids.Modules
 {
-    public class InitializeParticlePositionModule : ModuleBase
+    public class InitializeParticleModule : ModuleBase
     {
         public override int DefaultModuleOrder => ModuleOrder.Initialize;
         

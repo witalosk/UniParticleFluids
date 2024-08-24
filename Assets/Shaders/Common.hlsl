@@ -4,8 +4,9 @@
 #include "Particle.hlsl"
 
 uint3 _DesiredThreadNum;
-#define RETURN_IF_INVALID(TID) // sjk
-// #define RETURN_IF_INVALID(TID) if (any(TID >= _DesiredThreadNum)) return;
+#define RETURN_IF_INVALID(TID) if (any(TID >= _DesiredThreadNum)) return;
+
+static const float POSITION_EPSILON = 1e-4;
 
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex
@@ -153,6 +154,11 @@ float SimplexNoise(float3 v)
 //     ) / d.x * 0.5;
 //     return rot;
 // }
+
+inline void ClampPosition(inout float3 position, float3 grid_min, float3 grid_max)
+{
+    position = clamp(position, grid_min + POSITION_EPSILON, grid_max - POSITION_EPSILON);
+}
 
 float3 ConvertRgbToHsv(float3 c)
 {

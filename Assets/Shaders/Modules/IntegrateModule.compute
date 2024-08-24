@@ -7,6 +7,8 @@ RWStructuredBuffer<Particle> _ParticleBufferWrite;
 
 float _DeltaTime;
 float _NoiseScale;
+float3 _SpaceMin;
+float3 _SpaceMax;
 
 [numthreads(256, 1, 1)]
 void Integrate (uint3 id : SV_DispatchThreadID)
@@ -14,6 +16,8 @@ void Integrate (uint3 id : SV_DispatchThreadID)
     uint pid = id.x;
     Particle p = _ParticleBuffer[pid];
     p.position += p.velocity * _DeltaTime;
+
+    ClampPosition(p.position, _SpaceMin, _SpaceMax);
     
     _ParticleBufferWrite[pid] = p;
 }

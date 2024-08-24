@@ -12,7 +12,7 @@ namespace UniParticleFluids.Modules.Pic
         
         private ParticleBuffer _particleBuffer;
         private FieldVelocityBuffer _fieldVelocityBuffer;
-        private ISimulationStepConfig _simulationStepConfig;
+        private ITimeStepConfig _timeStepConfig;
         private ISimulationSpaceConfig _simulationSpaceConfig;
         private IGridSpacingConfig _gridSpacingConfig;
         
@@ -20,7 +20,7 @@ namespace UniParticleFluids.Modules.Pic
         {
             _particleBuffer = resolver.Resolve<ParticleBuffer>();
             _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
-            _simulationStepConfig = resolver.Resolve<ISimulationStepConfig>();
+            _timeStepConfig = resolver.Resolve<ITimeStepConfig>();
             _simulationSpaceConfig = resolver.Resolve<ISimulationSpaceConfig>();
             _gridSpacingConfig = resolver.Resolve<IGridSpacingConfig>();
         }
@@ -32,7 +32,7 @@ namespace UniParticleFluids.Modules.Pic
             _picAdvectCs.SetVector("_GridMax", _simulationSpaceConfig.Max);
             _picAdvectCs.SetInts("_GridSize", _fieldVelocityBuffer.Size.ToInts());
             _picAdvectCs.SetFloat("_GridInvSpacing", 1f / _gridSpacingConfig.GridSpacing);
-            _picAdvectCs.SetFloat("_SimulationStep", _simulationStepConfig.SimulationStep);
+            _picAdvectCs.SetFloat("_SimulationStep", _timeStepConfig.TimeStep);
             
             _picAdvectCs.SetData(kernel, "_ParticleBuffer", _particleBuffer);
             _picAdvectCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
