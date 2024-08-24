@@ -1,0 +1,41 @@
+#pragma kernel PicAdvect
+
+#include "../../Common.hlsl"
+#include "../../Grid.hlsl"
+
+static const float POSITION_EPSILON = 1e-4;
+
+RWStructuredBuffer<Particle> _ParticleBuffer;
+Texture3D<float3> _FieldVelocityBuffer;
+SamplerState sampler_FieldVelocityBuffer;
+
+float3 _GridMin;
+float3 _GridMax;
+int3 _GridSize;
+float _GridInvSpacing;
+float _SimulationStep;
+
+inline void ClampPosition(inout float3 position, float3 grid_min, float3 grid_max)
+{
+    position = clamp(position, grid_min + POSITION_EPSILON, grid_max - POSITION_EPSILON);
+}
+
+[numthreads(128, 1, 1)]
+void PicAdvect(uint3 threadId : SV_DispatchThreadId)
+{
+    RETURN_IF_INVALID(threadId);
+
+    const uint pId = threadId.x;
+    
+    Particle p = _ParticleBuffer[pId];
+
+    float3 uv = WorldPosToUv(p.position, _GridMin, _GridInvSpacing, _GridSize);
+    float3 vel = _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uv, 0).xyz;
+
+    p.position += vel * _SimulationStep;
+
+    ClampPosition(p.position, _GridMin, _GridMax);
+    p.color = float4(CalcStrengthColor(length(vel) * 0.01), 1.0f);
+
+    _ParticleBuffer[pId] = p;
+}

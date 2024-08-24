@@ -8,6 +8,7 @@ namespace UniParticleFluids.Modules.Field
         public override int DefaultModuleOrder => ModuleOrder.FieldUpdate.ApplyVelocityToField;
         
         [SerializeField] private ComputeShader _applyGravityToFieldCs;
+        [SerializeField] private Vector3 _gravity = new(0, -9.81f, 0);
         
         private FieldVelocityBuffer _fieldVelocityBuffer;
 
@@ -19,6 +20,7 @@ namespace UniParticleFluids.Modules.Field
         public override void Run()
         {
             int kernel = _applyGravityToFieldCs.FindKernel("ApplyGravityToField");
+            _applyGravityToFieldCs.SetVector("_Gravity", _gravity);
             _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
             _applyGravityToFieldCs.DispatchDesired(kernel, _fieldVelocityBuffer.Size);
         }

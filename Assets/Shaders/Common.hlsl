@@ -172,4 +172,10 @@ float3 ConvertHsvToRgb(float3 c)
     return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
+float3 CalcStrengthColor(float val)
+{
+    float len = length(val);
+    return ConvertHsvToRgb(float3(1.0 - saturate(len), saturate(2.0 - clamp(len, 0.0, 1.25)), len));
+}
+
 #endif
