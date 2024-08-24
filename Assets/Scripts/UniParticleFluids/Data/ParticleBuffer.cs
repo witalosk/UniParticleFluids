@@ -3,10 +3,12 @@ using UnityEngine;
 
 namespace UniParticleFluids.Data
 {
-    public class ParticleBuffer : DataBase
+    public class ParticleBuffer : DoubleDataBase
     {
         public override Vector3Int Size => new(_particleCount, 1, 1);
         public override object Data => _buffer.Read;
+        public override object Read => _buffer.Read;
+        public override object Write => _buffer.Write;
         
         [SerializeField] private int _particleCount = 10000;
         
@@ -37,5 +39,7 @@ namespace UniParticleFluids.Data
         {
             _buffer.Swap();
         }
+
+
     }
 }

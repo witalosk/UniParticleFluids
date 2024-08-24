@@ -1,0 +1,61 @@
+#pragma kernel ParticleToGrid
+
+#include "../../Common.hlsl"
+#include "../../Grid.hlsl"
+
+static const int GridRange[6] = { -1, 1, -1, 1, -1, 1 };
+
+StructuredBuffer<Particle> _ParticleBuffer;
+StructuredBuffer<uint2> _GridStartEndBuffer;
+
+RWTexture3D<float3> _FieldVelocityBuffer;       // velocity
+RWTexture3D<float3> _FieldVelocityBufferWrite;  // original velocity
+
+float3 _GridMin;
+float3 _GridMax;
+int3 _GridSize;
+float _GridSpacing;
+float _GridInvSpacing;
+
+inline float GetWeight(float3 pPos, float3 cellPos, float gridInvSpacing)
+{
+    const float3 dist = abs((pPos - cellPos) * gridInvSpacing);
+    const float3 weight = saturate(1.0f - dist);
+    return weight.x * weight.y * weight.z;
+}
+
+[numthreads(8, 8, 8)]
+void ParticleToGrid(uint3 thread_id : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(thread_id);
+
+    const int3 c_index = thread_id;
+
+    // const uint c_types = _GridTypeBufferRead[c_id];
+
+    // if (IsSolidCell(GetMyType(c_types))) return;
+
+    const float3 cellWPos = CellIndexToWorldPos(c_index, _GridMin, _GridSpacing);
+
+    float sumWeight = 0;
+    float3 sumVelocity = 0;
+
+    // calc weight & velocity
+    FOR_EACH_NEIGHBOR_CELL_PARTICLE_START(c_index, p_id, _GridStartEndBuffer, GridRange, _GridSize)
+    {
+        const Particle p = _ParticleBuffer[p_id];
+
+        float weight = GetWeight(p.position, cellWPos, _GridInvSpacing);
+
+        sumWeight += weight;
+        sumVelocity += weight * p.velocity;
+    }
+    FOR_EACH_NEIGHBOR_CELL_PARTICLE_END
+
+    float3 velocity = sumWeight > 0 ? sumVelocity / sumWeight : 0.0f;
+
+    // EnforceBoundaryCondition(velocity, c_types);
+
+    _FieldVelocityBuffer[c_index] = velocity;
+    _FieldVelocityBufferWrite[c_index] = velocity;
+}

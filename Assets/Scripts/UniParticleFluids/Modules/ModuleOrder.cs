@@ -23,5 +23,12 @@ namespace UniParticleFluids.Modules
         public const int PostUpdate = 8000;
         public const int Render = 9000;
         public const int Custom = 10000;
+        
+        
+        public static class PicUpdate
+        {
+            public const int ParticleToGrid = 2000;
+            
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using UniParticleFluids.Data;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace UniParticleFluids
 {
@@ -16,6 +17,14 @@ namespace UniParticleFluids
             cs.SetInts(_desiredThreadNumId, desiredX, desiredY, desiredZ);
             cs.GetKernelThreadGroupSizes(kernel, out uint x, out uint y, out uint z);
             cs.Dispatch(kernel, Mathf.CeilToInt(desiredX / (float)x), Mathf.CeilToInt(desiredY / (float)y), Mathf.CeilToInt(desiredZ / (float)z));
+        }
+        
+        /// <summary>
+        /// Dispatch the compute shader with the desired thread num.
+        /// </summary>
+        public static void DispatchDesired(this ComputeShader cs, int kernel, Vector3Int desired)
+        {
+            DispatchDesired(cs, kernel, desired.x, desired.y, desired.z);
         }
         
         public static int[] ToInts(this Vector3Int v)
@@ -69,6 +78,57 @@ namespace UniParticleFluids
         {
             _readBuffer?.Dispose();
             _writeBuffer?.Dispose();
+            _readBuffer = null;
+            _writeBuffer = null;
+        }
+    }
+    
+    public class SwapTexture : IDisposable
+    {
+        public RenderTexture Read => _readBuffer;
+        public RenderTexture Write => _writeBuffer;
+        
+        private RenderTexture _readBuffer;
+        private RenderTexture _writeBuffer;
+        
+        public SwapTexture(Vector3Int resolution, RenderTextureFormat format, FilterMode filterMode, TextureWrapMode wrapMode)
+        {
+            _readBuffer = new RenderTexture(resolution.x, resolution.y, 0, format)
+            {
+                enableRandomWrite = true, 
+                filterMode = filterMode,
+                volumeDepth = resolution.z,
+                dimension = TextureDimension.Tex3D,
+                wrapMode = wrapMode
+            };
+            _readBuffer.Create();
+            
+            _writeBuffer = new RenderTexture(resolution.x, resolution.y, 0, format)
+            {
+                enableRandomWrite = true, 
+                filterMode = filterMode,
+                volumeDepth = resolution.z,
+                dimension = TextureDimension.Tex3D,
+                wrapMode = wrapMode
+            };
+            _writeBuffer.Create();
+        }
+
+        
+        ~SwapTexture()
+        {
+            Dispose();
+        }
+        
+        public void Swap()
+        {
+            (_readBuffer, _writeBuffer) = (_writeBuffer, _readBuffer);
+        }
+
+        public void Dispose()
+        {
+            _readBuffer?.Release();
+            _writeBuffer?.Release();
             _readBuffer = null;
             _writeBuffer = null;
         }

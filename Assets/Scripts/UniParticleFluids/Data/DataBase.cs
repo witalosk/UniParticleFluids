@@ -12,4 +12,10 @@ namespace UniParticleFluids.Data
         public abstract void SetToComputeShader(ComputeShader computeShader, int kernel, string shaderName);
         public abstract void SetToMaterial(Material material, string shaderName);
     }
+    
+    public abstract class DoubleDataBase : DataBase
+    {
+        public abstract object Read { get; }
+        public abstract object Write { get; }
+    }
 }
