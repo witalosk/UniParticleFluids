@@ -1,13 +1,21 @@
 #pragma kernel ApplyGravityToField
 
+
+#include "../../Common.hlsl"
+#include "../../Grid.hlsl"
+
+
+Texture3D<float3> _FieldVelocityTextureRead;
 RWTexture3D<float3> _FieldVelocityBuffer;
 
 float3 _Gravity;
+float _TimeStep;
 
 [numthreads(8, 8, 8)]
 void ApplyGravityToField(uint3 threadId : SV_DispatchThreadID)
 {
+    RETURN_IF_INVALID(threadId);
     float3 velocity = _FieldVelocityBuffer[threadId];
-    velocity += _Gravity;
+    velocity += _Gravity * _TimeStep;
     _FieldVelocityBuffer[threadId] = velocity;
 }

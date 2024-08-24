@@ -6,7 +6,7 @@ namespace UniParticleFluids.Modules.Pic
 {
     public class GridToParticleModule : ModuleBase
     {
-        public override int DefaultModuleOrder => ModuleOrder.PicUpdate.ParticleToGrid;
+        public override int DefaultModuleOrder => ModuleOrder.PicUpdate.GridToParticle;
         
         [SerializeField] private ComputeShader _particleToGridCs;
         

@@ -53,7 +53,7 @@ void ParticleToGrid(uint3 thread_id : SV_DispatchThreadID)
     FOR_EACH_NEIGHBOR_CELL_PARTICLE_END
 
     float3 velocity = sumWeight > 0 ? sumVelocity / sumWeight : 0.0f;
-
+    
     // EnforceBoundaryCondition(velocity, c_types);
 
     _FieldVelocityBuffer[c_index] = velocity;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UniParticleFluids.Configs;
 using UniParticleFluids.Data;
 using UniParticleFluids.Modules;
@@ -28,8 +29,8 @@ namespace UniParticleFluids
             {
                 data.Initialize(this);
             }
-            
-            _moduleList.Sort((a, b) => a.DefaultModuleOrder.CompareTo(b.DefaultModuleOrder));
+
+            _moduleList = _moduleList.OrderBy(m => m.DefaultModuleOrder).ToList();
             foreach (var module in _moduleList)
             {
                 module.Initialize(this);

@@ -9,6 +9,7 @@ namespace UniParticleFluids.Modules
         
         [SerializeField] private float _initialSize = 0.03f;
         [SerializeField] private Color _initialColor = Color.cyan;
+        [SerializeField] private Vector3 _initialVelocity = Vector3.up;
 
         public override void Initialize(IObjectResolver resolver)
         {
@@ -24,7 +25,7 @@ namespace UniParticleFluids.Modules
                     Uuid = i,
                     Size = _initialSize,
                     Position = Random.insideUnitSphere * 5f,
-                    Velocity = Vector3.zero,
+                    Velocity = _initialVelocity,
                     Color = _initialColor
                 };
                 cpuBuffer[i] = particle;
