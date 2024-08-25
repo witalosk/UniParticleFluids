@@ -12,7 +12,7 @@ namespace UniParticleFluids.Modules.Pic
         
         private ParticleBuffer _particleBuffer;
         private ParticleGridStartEndBuffer _gridStartEndBuffer;
-        private FieldVelocityBuffer _fieldVelocityBuffer;
+        private FieldVelocityDoubleBuffer _fieldVelocityDoubleBuffer;
         private ISimulationSpaceConfig _simulationSpaceConfig;
         private IGridSpacingConfig _gridSpacingConfig;
 
@@ -20,7 +20,7 @@ namespace UniParticleFluids.Modules.Pic
         {
             _particleBuffer = resolver.Resolve<ParticleBuffer>();
             _gridStartEndBuffer = resolver.Resolve<ParticleGridStartEndBuffer>();
-            _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
+            _fieldVelocityDoubleBuffer = resolver.Resolve<FieldVelocityDoubleBuffer>();
             _simulationSpaceConfig = resolver.Resolve<ISimulationSpaceConfig>();
             _gridSpacingConfig = resolver.Resolve<IGridSpacingConfig>();
         }
@@ -36,9 +36,9 @@ namespace UniParticleFluids.Modules.Pic
             int kernel = _particleToGridCs.FindKernel("ParticleToGrid");
             _particleToGridCs.SetData(kernel, "_ParticleBuffer", _particleBuffer);
             _particleToGridCs.SetData(kernel, "_GridStartEndBuffer", _gridStartEndBuffer);
-            _particleToGridCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
+            _particleToGridCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityDoubleBuffer);
 
-            _particleToGridCs.DispatchDesired(kernel, _fieldVelocityBuffer.Size);
+            _particleToGridCs.DispatchDesired(kernel, _fieldVelocityDoubleBuffer.Size);
         }
     }
 }

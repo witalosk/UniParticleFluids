@@ -1,13 +1,113 @@
 #pragma kernel CalcDivergence
+#pragma kernel Project
+#pragma kernel UpdateVelocity
 
 #include "../../Common.hlsl"
 #include "../../Grid.hlsl"
 
 Texture3D<float3> _FieldVelocityBuffer;
 RWTexture3D<float3> _FieldVelocityBufferWrite;
+Texture3D<float> _FieldPressureBuffer;
+RWTexture3D<float> _FieldPressureBufferWrite;
+Texture3D<float> _FieldDivergenceBuffer;
+RWTexture3D<float> _FieldDivergenceBufferWrite;
+
+SamplerState sampler_FieldVelocityBuffer;
+SamplerState sampler_FieldPressureBuffer;
+SamplerState sampler_FieldDivergenceBuffer;
+
+DEFINE_GRID(_FieldVelocityBuffer);
+DEFINE_SPACE(_Space);
+
+float _ProjNeighborCoef;
+float _ProjCenterCoef;
 
 [numthreads(8, 8, 8)]
-void CalcDivergence(uint3 thread_id : SV_DispatchThreadID)
+void CalcDivergence(uint3 threadId : SV_DispatchThreadID)
 {
-    RETURN_IF_INVALID(thread_id);
+    RETURN_IF_INVALID(threadId);
+
+    const uint3 cid = threadId;
+    float3 worldPos = CellIndexToWorldPos(cid, _SpaceMin, _FieldVelocityBufferGridSpacing);
+    
+    float divergence = 0;
+
+    // Only Fluid Cell Execution under this
+    const float3 uvXp = CellIndexToUv(cid + int3(1, 0, 0), _FieldVelocityBufferGridSize);
+    const float3 uvXn = CellIndexToUv(cid + int3(-1, 0, 0), _FieldVelocityBufferGridSize);
+    const float3 uvYp = CellIndexToUv(cid + int3(0, 1, 0), _FieldVelocityBufferGridSize);
+    const float3 uvYn = CellIndexToUv(cid + int3(0, -1, 0), _FieldVelocityBufferGridSize);
+    const float3 uvZp = CellIndexToUv(cid + int3(0, 0, 1), _FieldVelocityBufferGridSize);
+    const float3 uvZn = CellIndexToUv(cid + int3(0, 0, -1), _FieldVelocityBufferGridSize);
+
+    // Calc Divergence (dVx/dx + dVy/dy + dVz/dz)
+    float3 invDx = _FieldVelocityBufferGridInvSpacing;
+    divergence += ((cid.x < (uint)(_FieldVelocityBufferGridSize.x) - 1 ? _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvXp, 0).x - _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvXn, 0).x : 0.0f)) * invDx.x;
+    divergence += ((cid.y < (uint)(_FieldVelocityBufferGridSize.y) - 1 ? _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvYp, 0).y - _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvYn, 0).y : 0.0f)) * invDx.y;
+    divergence += ((cid.z < (uint)(_FieldVelocityBufferGridSize.z) - 1 ? _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvZp, 0).z - _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvZn, 0).z : 0.0f)) * invDx.z;
+
+    _FieldDivergenceBufferWrite[cid] = divergence;
+}
+
+[numthreads(8, 8, 8)]
+void Project(uint3 threadId : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(threadId);
+
+    const uint3 cId = threadId;
+    float3 uv = CellIndexToUv(cId, _FieldVelocityBufferGridSize);
+
+    float pressure = 0;
+
+    // Only Fluid Cell Execution under this
+
+    // Projection with Jacobi Iteration
+    float3 uvXn = CellIndexToUv(cId + int3(-1, 0, 0), _FieldVelocityBufferGridSize);
+    // c_id_xp = IsSolidCell(GetXPrevType(c_types)) ? c_id : c_id_xp;
+    float3 uvXp = CellIndexToUv(cId + int3(1, 0, 0), _FieldVelocityBufferGridSize);
+    // c_id_xn = IsSolidCell(GetXNextType(c_types)) ? c_id : c_id_xn;
+    float3 uvYn = CellIndexToUv(cId + int3(0, -1, 0), _FieldVelocityBufferGridSize);
+    // c_id_yp = IsSolidCell(GetYPrevType(c_types)) ? c_id : c_id_yp;
+    float3 uvYp = CellIndexToUv(cId + int3(0, 1, 0), _FieldVelocityBufferGridSize);
+    // c_id_yn = IsSolidCell(GetYNextType(c_types)) ? c_id : c_id_yn;
+    float3 uvZn = CellIndexToUv(cId + int3(0, 0, -1), _FieldVelocityBufferGridSize);
+    // c_id_zp = IsSolidCell(GetZPrevType(c_types)) ? c_id : c_id_zp;
+    float3 uvZp = CellIndexToUv(cId + int3(0, 0, 1), _FieldVelocityBufferGridSize);
+    // c_id_zn = IsSolidCell(GetZNextType(c_types)) ? c_id : c_id_zn;
+
+    pressure += _ProjNeighborCoef * (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXn, 0) + _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXp, 0));
+    pressure += _ProjNeighborCoef * (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYn, 0) + _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYp, 0));
+    pressure += _ProjNeighborCoef * (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZn, 0) + _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZp, 0));
+    pressure += _ProjCenterCoef * _FieldDivergenceBuffer.SampleLevel(sampler_FieldDivergenceBuffer, uv, 0);
+
+    _FieldPressureBufferWrite[cId] = pressure;
+}
+
+[numthreads(8, 8, 8)]
+void UpdateVelocity(uint3 threadId : SV_DispatchThreadID)
+{
+    RETURN_IF_INVALID(threadId);
+
+    const uint3 cId = threadId;
+    float3 uv = CellIndexToUv(cId, _FieldVelocityBufferGridSize);
+    
+    float3 uvXn = CellIndexToUv(cId + int3(-1, 0, 0), _FieldVelocityBufferGridSize);
+    float3 uvXp = CellIndexToUv(cId + int3(1, 0, 0), _FieldVelocityBufferGridSize);
+    // c_id_xp = IsSolidCell(GetXPrevType(c_types)) ? c_id : c_id_xp;
+    float3 uvYn = CellIndexToUv(cId + int3(0, -1, 0), _FieldVelocityBufferGridSize);
+    float3 uvYp = CellIndexToUv(cId + int3(0, 1, 0), _FieldVelocityBufferGridSize);
+    // c_id_yp = IsSolidCell(GetYPrevType(c_types)) ? c_id : c_id_yp;
+    float3 uvZn = CellIndexToUv(cId + int3(0, 0, -1), _FieldVelocityBufferGridSize);
+    float3 uvZp = CellIndexToUv(cId + int3(0, 0, 1), _FieldVelocityBufferGridSize);
+    // c_id_zp = IsSolidCell(GetZPrevType(c_types)) ? c_id : c_id_zp;
+
+    float3 vel = _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uv, 0);
+    
+    vel.x -= (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXp, 0) - _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXn, 0)) * _FieldVelocityBufferGridInvSpacing;
+    vel.y -= (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYp, 0) - _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYn, 0)) * _FieldVelocityBufferGridInvSpacing;
+    vel.z -= (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZp, 0) - _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZn, 0)) * _FieldVelocityBufferGridInvSpacing;
+
+    // EnforceBoundaryCondition(vel, c_types);
+
+    _FieldVelocityBufferWrite[cId] = vel;
 }

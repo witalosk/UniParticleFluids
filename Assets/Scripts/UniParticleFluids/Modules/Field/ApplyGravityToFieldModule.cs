@@ -11,12 +11,12 @@ namespace UniParticleFluids.Modules.Field
         [SerializeField] private ComputeShader _applyGravityToFieldCs;
         [SerializeField] private Vector3 _gravity = new(0, -9.81f, 0);
         
-        private FieldVelocityBuffer _fieldVelocityBuffer;
+        private FieldVelocityDoubleBuffer _fieldVelocityDoubleBuffer;
         private ITimeStepConfig _timeStepConfig;
 
         public override void Initialize(IObjectResolver resolver)
         {
-            _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
+            _fieldVelocityDoubleBuffer = resolver.Resolve<FieldVelocityDoubleBuffer>();
             _timeStepConfig = resolver.Resolve<ITimeStepConfig>();
         }
 
@@ -25,9 +25,9 @@ namespace UniParticleFluids.Modules.Field
             int kernel = _applyGravityToFieldCs.FindKernel("ApplyGravityToField");
             _applyGravityToFieldCs.SetVector("_Gravity", _gravity);
             _applyGravityToFieldCs.SetFloat("_TimeStep", _timeStepConfig.TimeStep);
-            _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBufferRead", _fieldVelocityBuffer);
-            _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
-            _applyGravityToFieldCs.DispatchDesired(kernel, _fieldVelocityBuffer.Size);
+            _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBufferRead", _fieldVelocityDoubleBuffer);
+            _applyGravityToFieldCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityDoubleBuffer);
+            _applyGravityToFieldCs.DispatchDesired(kernel, _fieldVelocityDoubleBuffer.Size);
         }
     }
 }

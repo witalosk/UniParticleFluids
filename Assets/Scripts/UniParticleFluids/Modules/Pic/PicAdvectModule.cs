@@ -11,7 +11,7 @@ namespace UniParticleFluids.Modules.Pic
         [SerializeField] private ComputeShader _picAdvectCs;
         
         private ParticleBuffer _particleBuffer;
-        private FieldVelocityBuffer _fieldVelocityBuffer;
+        private FieldVelocityDoubleBuffer _fieldVelocityDoubleBuffer;
         private ITimeStepConfig _timeStepConfig;
         private ISimulationSpaceConfig _simulationSpaceConfig;
         private IGridSpacingConfig _gridSpacingConfig;
@@ -19,7 +19,7 @@ namespace UniParticleFluids.Modules.Pic
         public override void Initialize(IObjectResolver resolver)
         {
             _particleBuffer = resolver.Resolve<ParticleBuffer>();
-            _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
+            _fieldVelocityDoubleBuffer = resolver.Resolve<FieldVelocityDoubleBuffer>();
             _timeStepConfig = resolver.Resolve<ITimeStepConfig>();
             _simulationSpaceConfig = resolver.Resolve<ISimulationSpaceConfig>();
             _gridSpacingConfig = resolver.Resolve<IGridSpacingConfig>();
@@ -30,12 +30,12 @@ namespace UniParticleFluids.Modules.Pic
             int kernel = _picAdvectCs.FindKernel("PicAdvect");
             _picAdvectCs.SetVector("_GridMin", _simulationSpaceConfig.Min);
             _picAdvectCs.SetVector("_GridMax", _simulationSpaceConfig.Max);
-            _picAdvectCs.SetInts("_GridSize", _fieldVelocityBuffer.Size.ToInts());
+            _picAdvectCs.SetInts("_GridSize", _fieldVelocityDoubleBuffer.Size.ToInts());
             _picAdvectCs.SetFloat("_GridInvSpacing", 1f / _gridSpacingConfig.GridSpacing);
             _picAdvectCs.SetFloat("_SimulationStep", _timeStepConfig.TimeStep);
             
             _picAdvectCs.SetData(kernel, "_ParticleBuffer", _particleBuffer);
-            _picAdvectCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
+            _picAdvectCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityDoubleBuffer);
             _picAdvectCs.DispatchDesired(kernel, _particleBuffer.Size.x);            
         }
     }

@@ -40,6 +40,12 @@ inline float3 CellIndexToWorldPos(int3 index, float3 grid_min, float grid_spacin
     return grid_min + (index + 0.5f) * grid_spacing;
 }
 
+inline float3 CellIndexToUv(int3 index, int3 gridSize)
+{
+    return ((float3)index + 0.5) / gridSize;
+}
+
+
 inline float3 GridPosToWorldPos(float3 position, float3 grid_min, float grid_spacing)
 {
     return grid_min + position * grid_spacing;

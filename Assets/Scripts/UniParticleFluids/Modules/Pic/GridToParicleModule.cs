@@ -11,14 +11,14 @@ namespace UniParticleFluids.Modules.Pic
         [SerializeField] private ComputeShader _particleToGridCs;
         
         private ParticleBuffer _particleBuffer;
-        private FieldVelocityBuffer _fieldVelocityBuffer;
+        private FieldVelocityDoubleBuffer _fieldVelocityDoubleBuffer;
         private ISimulationSpaceConfig _simulationSpaceConfig;
         private PicConfig _picConfig;
 
         public override void Initialize(IObjectResolver resolver)
         {
             _particleBuffer = resolver.Resolve<ParticleBuffer>();
-            _fieldVelocityBuffer = resolver.Resolve<FieldVelocityBuffer>();
+            _fieldVelocityDoubleBuffer = resolver.Resolve<FieldVelocityDoubleBuffer>();
             _simulationSpaceConfig = resolver.Resolve<ISimulationSpaceConfig>();
             _picConfig = resolver.Resolve<PicConfig>();
         }
@@ -31,7 +31,7 @@ namespace UniParticleFluids.Modules.Pic
 
             _particleToGridCs.SetData(kernel, "_Space", _simulationSpaceConfig);
             _particleToGridCs.SetData(kernel, "_ParticleBuffer", _particleBuffer);
-            _particleToGridCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityBuffer);
+            _particleToGridCs.SetData(kernel, "_FieldVelocityBuffer", _fieldVelocityDoubleBuffer);
 
             _particleToGridCs.DispatchDesired(kernel, _particleBuffer.Size.x);
         }

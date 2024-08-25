@@ -1,3 +1,4 @@
+using System;
 using UniParticleFluids.Utilities.CustomAttributes;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ namespace UniParticleFluids.Data
     {
         public virtual Vector3Int Size => _size;
         public abstract object Data { get; }
+        public Type ElementType { get; protected set; }
         
         [SerializeField] [Disable] protected Vector3Int _size = new(1, 1, 1);
         
