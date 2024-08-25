@@ -54,7 +54,7 @@ namespace UniParticleFluids.Modules.Pic
             
             // Update Velocity
             kernelId = _pressureProjectionCs.FindKernel("UpdateVelocity");
-            _pressureProjectionCs.SetData(kernelId, "_FieldVelocityBuffer", _fieldVelocityDoubleBuffer);
+            _pressureProjectionCs.SetData(kernelId, "_FieldVelocityBufferWrite", _fieldVelocityDoubleBuffer);
             _pressureProjectionCs.SetData(kernelId, "_FieldPressureBuffer", _fieldPressureDoubleBuffer);
             _pressureProjectionCs.DispatchDesired(kernelId, _fieldVelocityDoubleBuffer.Size);
         }

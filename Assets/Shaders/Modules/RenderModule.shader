@@ -69,7 +69,7 @@ Shader "Hidden/RenderModule"
         LOD 100
 
         ZWrite Off
-        Blend One One
+        Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {

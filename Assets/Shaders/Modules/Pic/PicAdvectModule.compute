@@ -31,7 +31,7 @@ void PicAdvect(uint3 threadId : SV_DispatchThreadId)
     p.position += vel * _SimulationStep;
 
     ClampPosition(p.position, _GridMin, _GridMax);
-    p.color = 0.1 + float4(CalcStrengthColor(length(vel) * 0.01), 1.0f);
+    p.color = 0.01 + float4(CalcStrengthColor(length(vel) * 0.05), 1.0f);
 
     _ParticleBuffer[pId] = p;
 }

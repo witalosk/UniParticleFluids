@@ -4,8 +4,8 @@ namespace UniParticleFluids.Configs
 {
     public class ConfigBase : MonoBehaviour, IControllerObject
     {
-        public void Initialize(IObjectResolver resolver) { }
-        public void Deinitialize() { }
+        public virtual void Initialize(IObjectResolver resolver) { }
+        public virtual void Deinitialize() { }
         public void Run() { }
     }
 }
