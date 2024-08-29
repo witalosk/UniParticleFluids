@@ -22,13 +22,14 @@ DEFINE_SPACE(_Space);
 float _ProjNeighborCoef;
 float _ProjCenterCoef;
 
+#define SAMPLE_BUFFER(bufName, uv, cid, gridSize, axis) (cid.axis > 0 && cid.axis < (uint)(gridSize.axis) - 1 ? bufName.SampleLevel(sampler##bufName, uv, 0).axis : 0)
+
 [numthreads(8, 8, 8)]
 void CalcDivergence(uint3 threadId : SV_DispatchThreadID)
 {
     RETURN_IF_INVALID(threadId);
 
     const uint3 cid = threadId;
-    float3 worldPos = CellIndexToWorldPos(cid, _SpaceMin, _FieldVelocityBufferGridSpacing);
     
     float divergence = 0;
 
@@ -42,9 +43,9 @@ void CalcDivergence(uint3 threadId : SV_DispatchThreadID)
 
     // Calc Divergence (dVx/dx + dVy/dy + dVz/dz)
     float3 invDx = _FieldVelocityBufferGridInvSpacing;
-    divergence += ((cid.x == 0 || cid.x < (uint)(_FieldVelocityBufferGridSize.x) - 1 ? _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvXp, 0).x - _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvXn, 0).x : 0.0f)) * invDx.x;
-    divergence += ((cid.y == 0 || cid.y < (uint)(_FieldVelocityBufferGridSize.y) - 1 ? _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvYp, 0).y - _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvYn, 0).y : 0.0f)) * invDx.y;
-    divergence += ((cid.z == 0 || cid.z < (uint)(_FieldVelocityBufferGridSize.z) - 1 ? _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvZp, 0).z - _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uvZn, 0).z : 0.0f)) * invDx.z;
+    divergence += (SAMPLE_BUFFER(_FieldVelocityBuffer, uvXp, cid, _FieldVelocityBufferGridSize, x) - SAMPLE_BUFFER(_FieldVelocityBuffer, uvXn, cid, _FieldVelocityBufferGridSize, x)) * invDx.x;
+    divergence += (SAMPLE_BUFFER(_FieldVelocityBuffer, uvYp, cid, _FieldVelocityBufferGridSize, y) - SAMPLE_BUFFER(_FieldVelocityBuffer, uvYn, cid, _FieldVelocityBufferGridSize, y)) * invDx.y;
+    divergence += (SAMPLE_BUFFER(_FieldVelocityBuffer, uvZp, cid, _FieldVelocityBufferGridSize, z) - SAMPLE_BUFFER(_FieldVelocityBuffer, uvZn, cid, _FieldVelocityBufferGridSize, z)) * invDx.z;
 
     _FieldDivergenceBufferWrite[cid] = divergence;
 }
@@ -75,9 +76,9 @@ void Project(uint3 threadId : SV_DispatchThreadID)
     float3 uvZp = CellIndexToUv(cId + int3(0, 0, 1), _FieldVelocityBufferGridSize);
     // c_id_zn = IsSolidCell(GetZNextType(c_types)) ? c_id : c_id_zn;
 
-    pressure += _ProjNeighborCoef * (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXn, 0) + _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXp, 0));
-    pressure += _ProjNeighborCoef * (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYn, 0) + _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYp, 0));
-    pressure += _ProjNeighborCoef * (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZn, 0) + _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZp, 0));
+    pressure += _ProjNeighborCoef * (SAMPLE_BUFFER(_FieldPressureBuffer, uvXn, cId, _FieldVelocityBufferGridSize, x) + SAMPLE_BUFFER(_FieldPressureBuffer, uvXp, cId, _FieldVelocityBufferGridSize, x));
+    pressure += _ProjNeighborCoef * (SAMPLE_BUFFER(_FieldPressureBuffer, uvYn, cId, _FieldVelocityBufferGridSize, x) + SAMPLE_BUFFER(_FieldPressureBuffer, uvYp, cId, _FieldVelocityBufferGridSize, x));
+    pressure += _ProjNeighborCoef * (SAMPLE_BUFFER(_FieldPressureBuffer, uvZn, cId, _FieldVelocityBufferGridSize, x) + SAMPLE_BUFFER(_FieldPressureBuffer, uvZp, cId, _FieldVelocityBufferGridSize, x));
     pressure += _ProjCenterCoef * _FieldDivergenceBuffer.SampleLevel(sampler_FieldDivergenceBuffer, uv, 0);
 
     _FieldPressureBufferWrite[cId] = pressure;
@@ -103,9 +104,9 @@ void UpdateVelocity(uint3 threadId : SV_DispatchThreadID)
 
     float3 vel = _FieldVelocityBufferWrite[cId];
     
-    vel.x -= (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXp, 0) - _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvXn, 0)) * _FieldVelocityBufferGridInvSpacing;
-    vel.y -= (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYp, 0) - _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvYn, 0)) * _FieldVelocityBufferGridInvSpacing;
-    vel.z -= (_FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZp, 0) - _FieldPressureBuffer.SampleLevel(sampler_FieldPressureBuffer, uvZn, 0)) * _FieldVelocityBufferGridInvSpacing;
+    vel.x -= (SAMPLE_BUFFER(_FieldPressureBuffer, uvXp, cId, _FieldVelocityBufferGridSize, x) - SAMPLE_BUFFER(_FieldPressureBuffer, uvXn, cId, _FieldVelocityBufferGridSize, x)) * _FieldVelocityBufferGridInvSpacing;
+    vel.y -= (SAMPLE_BUFFER(_FieldPressureBuffer, uvYp, cId, _FieldVelocityBufferGridSize, x) - SAMPLE_BUFFER(_FieldPressureBuffer, uvYn, cId, _FieldVelocityBufferGridSize, x)) * _FieldVelocityBufferGridInvSpacing;
+    vel.z -= (SAMPLE_BUFFER(_FieldPressureBuffer, uvZp, cId, _FieldVelocityBufferGridSize, x) - SAMPLE_BUFFER(_FieldPressureBuffer, uvZn, cId, _FieldVelocityBufferGridSize, x)) * _FieldVelocityBufferGridInvSpacing;
 
     // EnforceBoundaryCondition(vel, c_types);
 

@@ -636,10 +636,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd30fa61280e4769a04931eaf61ba6d4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _simulationStep: 0.03
+  _simulationStep: 0.03333334
   _gridSpacing: 0.5
   _flipness: 0.99
-  _pressureIterationNum: 10
+  _pressureIterationNum: 2
 --- !u!1 &1150366058
 GameObject:
   m_ObjectHideFlags: 0

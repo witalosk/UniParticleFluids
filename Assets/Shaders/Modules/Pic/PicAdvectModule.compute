@@ -8,10 +8,8 @@ RWStructuredBuffer<Particle> _ParticleBuffer;
 Texture3D<float3> _FieldVelocityBuffer;
 SamplerState sampler_FieldVelocityBuffer;
 
-float3 _GridMin;
-float3 _GridMax;
-int3 _GridSize;
-float _GridInvSpacing;
+DEFINE_SPACE(_Space);
+DEFINE_GRID(_FieldVelocityBuffer);
 float _SimulationStep;
 
 
@@ -25,12 +23,12 @@ void PicAdvect(uint3 threadId : SV_DispatchThreadId)
     
     Particle p = _ParticleBuffer[pId];
 
-    float3 uv = WorldPosToUv(p.position, _GridMin, _GridInvSpacing, _GridSize);
+    float3 uv = WorldPosToUv(p.position, _SpaceMin, _FieldVelocityBufferGridInvSpacing, _FieldVelocityBufferGridSize);
     float3 vel = _FieldVelocityBuffer.SampleLevel(sampler_FieldVelocityBuffer, uv, 0).xyz;
 
     p.position += vel * _SimulationStep;
 
-    ClampPosition(p.position, _GridMin, _GridMax);
+    ClampPosition(p.position, _SpaceMin, _SpaceMax);
     p.color = 0.01 + float4(CalcStrengthColor(length(vel) * 0.05), 1.0f);
 
     _ParticleBuffer[pId] = p;

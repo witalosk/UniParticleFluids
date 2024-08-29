@@ -42,7 +42,7 @@ inline float3 CellIndexToWorldPos(int3 index, float3 grid_min, float grid_spacin
 
 inline float3 CellIndexToUv(int3 index, int3 gridSize)
 {
-    return ((float3)index + 0.5) / gridSize;
+    return saturate(((float3)index + 0.5) / gridSize);
 }
 
 
